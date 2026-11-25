@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="职途罗盘 V2：面向大学生的简历成长与求职导航 AI Agent" />
+  <title>职途罗盘 V2 · 简历成长与求职导航</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="job-backdrop" id="jobBackdrop" aria-hidden="true">
+    <div class="job-fx" id="jobFx"></div>
+  </div>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">职</div>
+        <div class="brand-text">
+          <h1>职途罗盘 <span class="version-tag">V2</span></h1>
+          <p>简历成长 · 求职导航 · 模拟面试</p>
+        </div>
+      </div>
+      <nav class="mode-tabs" id="modeTabs">
+        <button type="button" data-mode="growth" class="active">成长规划</button>
+        <button type="button" data-mode="resume">简历导航</button>
+        <button type="button" data-mode="interview">模拟面试</button>
+      </nav>
+      <div class="top-actions">
+        <button type="button" id="profileBtn" class="ghost">我的画像</button>
+        <button type="button" id="feedbackBtn" class="ghost">反馈</button>
+      </div>
+    </header>
+
+    <div id="engineBanner" class="engine-banner hidden"></div>
+    <div id="offlineBanner" class="engine-banner warn hidden"></div>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="card profile-card">
+          <div class="card-title">
+            <span>我的画像</span>
+            <button type="button" id="editProfile" class="link">编辑</button>
+          </div>
+          <div id="profileSummary" class="profile-summary"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title"><span>进度</span></div>
+          <div class="progress-row"><span>简历完成度</span><strong id="resumeCompleteness">0%</strong></div>
+          <div class="bar"><i id="resumeBar"></i></div>
+          <div class="progress-row"><span>计划任务</span><strong id="planProgress">0 / 0</strong></div>
+          <div class="bar"><i id="planBar"></i></div>
+        </section>
+
+        <section class="card job-card">
+          <div class="card-title"><span>目标岗位能力</span><span id="jobBadge" class="badge">未设定</span></div>
+          <div class="job-head">
+            <strong id="jobName">待选择岗位</strong>
+            <button type="button" id="jobDetailBtn" class="link">岗位详情</button>
+          </div>
+          <p id="jobSummary" class="job-summary"></p>
+          <div id="jobSkills" class="job-skill-list"></div>
+        </section>
+
+        <section class="card tip-card">
+          <div class="card-title"><span>使用提示</span></div>
+          <p id="tipText">先从「成长规划」开始，系统会一次问一个问题，帮你把方向和计划定下来。</p>
+        </section>
+      </aside>
+
+      <section class="chat-panel card">
+        <div class="chat-head">
+          <div class="chat-agent">
+            <span id="agentTitle">成长教练</span>
+            <span id="agentDot" class="dot"></span>
+            <span id="engineTag" class="engine-tag">规则引擎</span>
+          </div>
+          <span class="chat-hint">消息区固定高度，不会随对话跳动</span>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="suggestions" id="suggestions"></div>
+        <div class="composer">
+          <textarea id="input" rows="1" placeholder="输入你的回答，Enter 发送，Shift + Enter 换行"></textarea>
+          <button type="button" id="sendBtn" class="primary">发送</button>
+        </div>
+      </section>
+
+      <aside class="result-panel card" id="resultPanel"></aside>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="profileModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>完善你的画像</h2>
+      <p class="muted">画像会保存在本机，下次打开自动恢复，不用重新选择。</p>
+
+      <div class="grid-2">
+        <label class="field">
+          <span>学校类型</span>
+          <select id="pfSchoolType">
+            <option value="">请选择</option>
+            <option value="高校">高校</option>
+            <option value="高职">高职</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>年级</span>
+          <select id="pfGrade">
+            <option value="">请先选择学校类型</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>专业</span>
+        <input id="pfMajor" type="text" maxlength="40" placeholder="例如：软件技术 / 护理 / 电子商务" />
+      </label>
+
+      <label class="field">
+        <span>目标岗位</span>
+        <div class="field-inline">
+          <select id="pfJob"></select>
+          <button type="button" id="pfJobDetail" class="ghost">了解这个岗位</button>
+        </div>
+      </label>
+
+      <label class="field">
+        <span>已有技能</span>
+        <input
+          id="pfSkills"
+          type="text"
+          maxlength="200"
+          placeholder="用逗号分隔，可标注等级（未接触/了解/熟悉/掌握/熟练/精通），例如：Vue（熟练）, Python（掌握）"
+        />
+      </label>
+
+      <div class="analyze-box">
+        <div class="analyze-head">
+          <div>
+            <strong>不确定适合什么工作？</strong>
+            <p class="muted">根据专业和已有技能，从岗位匹配、能力差距、发展空间几个方面帮你分析。</p>
+          </div>
+          <button type="button" id="pfAnalyze" class="ghost">帮我分析</button>
+        </div>
+        <div id="pfAnalyzeResult" class="analyze-result"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="profileSkip" class="ghost">稍后再说</button>
+        <button type="button" id="profileSave" class="primary">保存并开始</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="jobModal" role="dialog" aria-modal="true">
+    <div class="modal-card job-modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="jobDetailTitle">岗位详情</h2>
+          <p id="jobDetailSummary" class="muted"></p>
+        </div>
+        <button type="button" id="jobDetailClose" class="icon-btn" aria-label="关闭">×</button>
+      </div>
+
+      <div class="job-detail-grid">
+        <section>
+          <h4>对口专业</h4>
+          <div id="jobDetailMajors" class="chips"></div>
+        </section>
+        <section>
+          <h4>常见项目</h4>
+          <div id="jobDetailProjects" class="chips"></div>
+        </section>
+      </div>
+
+      <section class="job-detail-section">
+        <h4>核心能力要求</h4>
+        <div id="jobDetailSkills" class="skill-list"></div>
+      </section>
+
+      <section class="job-detail-section">
+        <h4>面试常见关注点</h4>
+        <ul id="jobDetailFocus" class="plain-list"></ul>
+      </section>
+
+      <section class="job-detail-section">
+        <h4>入门学习资源</h4>
+        <ul id="jobDetailResources" class="plain-list"></ul>
+      </section>
+
+      <div class="modal-actions">
+        <button type="button" id="jobPick" class="primary">就选这个岗位</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="feedbackModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2>给职途罗盘一点反馈</h2>
+      <p class="muted">你的评分会帮助我们把作品做得更贴近真实需求。</p>
+      <div class="stars" id="stars">
+        <button type="button" data-score="1">1</button>
+        <button type="button" data-score="2">2</button>
+        <button type="button" data-score="3">3</button>
+        <button type="button" data-score="4">4</button>
+        <button type="button" data-score="5">5</button>
+      </div>
+      <label class="field">
+        <span>建议（选填）</span>
+        <textarea id="fbComment" rows="3" maxlength="500" placeholder="哪里好用、哪里别扭，都可以说"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button type="button" id="fbCancel" class="ghost">取消</button>
+        <button type="button" id="fbSubmit" class="primary">提交反馈</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
